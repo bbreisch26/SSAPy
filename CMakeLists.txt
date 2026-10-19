@@ -40,6 +40,7 @@ pybind11_add_module(_ssapy pysrc/ssapy.cpp)
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
 install(TARGETS _ssapy
     LIBRARY DESTINATION ssapy # Install the compiled module in Python's site-packages
+    RUNTIME DESTINATION ssapy # Windows DLL-based Python modules
 )
 
 # Define a static library target (ssapy)

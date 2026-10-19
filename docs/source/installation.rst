@@ -10,7 +10,7 @@ System Prerequisites
    :file: tables/system_prerequisites.csv
    :header-rows: 1
 
-These requirements can be easily installed on most modern macOS and Linux systems.
+These requirements can be installed on Windows, macOS, and Linux.
 
 .. tabs::
 
@@ -35,6 +35,40 @@ These requirements can be easily installed on most modern macOS and Linux system
 
           brew update
           brew install gcc git python3 graphviz
+
+    .. tab:: Windows
+
+       Use 64-bit CPython 3.10--3.12. To build from source, install
+       Visual Studio 2022 Build Tools with the **Desktop development with C++**
+       workload (including MSVC and a Windows SDK). CMake is installed
+       automatically by pip in the isolated build environment.
+
+       In PowerShell:
+
+       .. code-block:: powershell
+
+          py -3.12 -m venv .venv
+          .\.venv\Scripts\python.exe -m pip install --upgrade pip
+          .\.venv\Scripts\python.exe -m pip install llnl-ssapy
+
+       A compatible Windows wheel, when available for the selected version,
+       installs without a compiler. If pip selects a source distribution,
+       the C++ build tools above are required.
+
+       To install a development checkout:
+
+       .. code-block:: powershell
+
+          git clone --recurse-submodules https://github.com/LLNL/SSAPy.git
+          Set-Location SSAPy
+          py -3.12 -m venv .venv
+          .\.venv\Scripts\python.exe -m pip install --upgrade pip
+          .\.venv\Scripts\python.exe -m pip install .
+
+       Use ``python -m pip install -e .`` for an editable installation, with
+       ``python`` pointing to the virtual environment above. Git submodules
+       are needed for a source checkout; source distributions already contain
+       the bundled C++ binding headers.
 
 Installation
 ------------

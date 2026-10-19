@@ -1,0 +1,58 @@
+name: Windows wheels
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Build source distribution and wheel
+        # The default build command builds the wheel FROM the sdist, also
+        # checking that a pip source install needs no Git submodules.
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+      - name: Install wheel
+        run: |
+          $wheel = (Get-ChildItem dist/*.whl).FullName
+          python -m pip install $wheel pytest pytest-timeout pytest-xdist
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip check
+      - name: Test installed wheel outside the checkout
+        run: |
+          New-Item -ItemType Directory -Path "$env:RUNNER_TEMP/ssapy-wheel-tests" -Force | Out-Null
+          Copy-Item tests "$env:RUNNER_TEMP/ssapy-wheel-tests/tests" -Recurse
+          Set-Location "$env:RUNNER_TEMP/ssapy-wheel-tests"
+          python -c "import ssapy; print(ssapy.__file__); print(ssapy._ssapy.__file__); assert 'site-packages' in ssapy.__file__; assert ssapy._ssapy.__file__.endswith('.pyd')"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pytest tests -n 2 --timeout=120 --durations=20
+      - name: Test editable installation
+        run: |
+          python -m pip install --no-deps -e .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pytest tests/test_ellipsoid.py tests/test_ellipsoid_dtypes.py tests/test_harris_priester_bounds.py tests/test_harmonic_gravity_reference.py --timeout=120
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-wheel-${{ matrix.python-version }}
+          path: dist/*.whl
+          if-no-files-found: error

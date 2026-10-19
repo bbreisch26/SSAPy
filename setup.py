@@ -21,24 +21,39 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
-
         cfg = 'Debug' if self.debug else 'Release'
+        cmake_args = [
+            '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+            '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + extdir,
+            # Multi-configuration generators otherwise append Release/Debug,
+            # placing the Windows .pyd outside the package collected by pip.
+            '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_' + cfg.upper() + '=' + extdir,
+            '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_' + cfg.upper() + '=' + extdir,
+            '-DPython3_EXECUTABLE=' + sys.executable,
+            '-DPYBIND11_FINDPYTHON=ON',
+            '-DCMAKE_BUILD_TYPE=' + cfg,
+        ]
         build_args = ['--config', cfg]
+        if self.parallel:
+            build_args += ['--parallel', str(self.parallel)]
+        elif 'CMAKE_BUILD_PARALLEL_LEVEL' not in os.environ:
+            build_args += ['--parallel', '4']
 
-        cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-        build_args += ['--', '-j4']
+        # Visual Studio defaults to the host architecture. Match the wheel's
+        # target instead, while allowing explicitly configured generators.
+        generator = os.environ.get('CMAKE_GENERATOR', '')
+        if sys.platform == 'win32' and (not generator or 'Visual Studio' in generator):
+            if 'CMAKE_GENERATOR_PLATFORM' not in os.environ:
+                platform = {'win32': 'Win32', 'win-amd64': 'x64', 'win-arm64': 'ARM64'}
+                cmake_args += ['-A', platform[self.plat_name]]
 
         env = os.environ.copy()
-        env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
-                                                              self.distribution.get_version())
-        if not os.path.exists(self.build_temp):
-            os.makedirs(self.build_temp)
+        build_temp = os.path.join(self.build_temp, ext.name)
+        os.makedirs(build_temp, exist_ok=True)
         if 'CMAKE_VERBOSE_MAKEFILE' in env:
             cmake_args += ['-DCMAKE_VERBOSE_MAKEFILE=1']
-        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=build_temp, env=env)
+        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=build_temp, env=env)
 
 
 setup(

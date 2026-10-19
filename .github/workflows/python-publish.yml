@@ -9,7 +9,11 @@ permissions:
   contents: read
 
 jobs:
+  windows-wheels:
+    uses: ./.github/workflows/windows.yml
+
   build-and-publish:
+    needs: windows-wheels
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -31,6 +35,13 @@ jobs:
           
       - name: Build source distribution
         run: python -m build --sdist
+
+      - name: Download tested Windows wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: windows-wheel-*
+          path: dist
+          merge-multiple: true
 
       - name: Check distributions
         run: python -m twine check dist/*
