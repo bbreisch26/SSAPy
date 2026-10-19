@@ -30,11 +30,19 @@ jobs:
         # The default build command builds the wheel FROM the sdist, also
         # checking that a pip source install needs no Git submodules.
         run: |
-          python -m pip install --upgrade pip build
+          python -m pip install --upgrade pip build delvewheel
           python -m build
+      - name: Bundle the C++ runtime
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $vsInstall = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $crt = Get-ChildItem "$vsInstall/VC/Redist/MSVC/*/x64/Microsoft.VC*.CRT" -Directory | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $crt) { throw 'MSVC redistributable directory not found' }
+          $wheel = (Get-ChildItem dist/*.whl).FullName
+          python -m delvewheel repair --add-path $crt.FullName --wheel-dir wheelhouse $wheel
       - name: Install wheel
         run: |
-          $wheel = (Get-ChildItem dist/*.whl).FullName
+          $wheel = (Get-ChildItem wheelhouse/*.whl).FullName
           python -m pip install $wheel pytest pytest-timeout pytest-xdist
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m pip check
@@ -54,5 +62,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: windows-wheel-${{ matrix.python-version }}
-          path: dist/*.whl
+          path: wheelhouse/*.whl
           if-no-files-found: error
