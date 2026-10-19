@@ -12,7 +12,7 @@ pytest-timeout
 tqdm
 build
 cibuildwheel
-delocate
+delocate; sys_platform == 'darwin'
 ipython_genutils
 pytest-cov
 pytest-xdist

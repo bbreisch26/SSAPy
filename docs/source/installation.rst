@@ -38,7 +38,7 @@ These requirements can be installed on Windows, macOS, and Linux.
 
     .. tab:: Windows
 
-       Use 64-bit CPython 3.10--3.12. To build from source, install
+       Use 64-bit CPython 3.10--3.14. To build from source, install
        Visual Studio 2022 Build Tools with the **Desktop development with C++**
        workload (including MSVC and a Windows SDK). CMake is installed
        automatically by pip in the isolated build environment.
@@ -59,16 +59,16 @@ These requirements can be installed on Windows, macOS, and Linux.
 
        .. code-block:: powershell
 
-          git clone --recurse-submodules https://github.com/LLNL/SSAPy.git
+          git clone https://github.com/LLNL/SSAPy.git
           Set-Location SSAPy
           py -3.12 -m venv .venv
           .\.venv\Scripts\python.exe -m pip install --upgrade pip
           .\.venv\Scripts\python.exe -m pip install .
 
        Use ``python -m pip install -e .`` for an editable installation, with
-       ``python`` pointing to the virtual environment above. Git submodules
-       are needed for a source checkout; source distributions already contain
-       the bundled C++ binding headers.
+       ``python`` pointing to the virtual environment above. The same commands
+       work on Linux and macOS. The build backend installs CMake and pybind11
+       automatically; no Git submodules or manual compiler flags are needed.
 
 Installation
 ------------
