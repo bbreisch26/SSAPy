@@ -67,7 +67,6 @@ dev = [
     "flake8",
     "build",
     "cibuildwheel",
-    "delocate; sys_platform == 'darwin'",
 ]
 
 docs = [
