@@ -52,7 +52,7 @@ tested.
 Windows, Linux, and macOS share the same CMake build and wheel test pipeline.
 Release wheels are built from the source distribution with ``cibuildwheel``,
 which bundles platform runtime libraries and tests the installed wheel outside
-the source checkout. The matrix covers 64-bit CPython 3.10--3.14; editable
+the source checkout. The matrix covers 64-bit Python 3.10--3.14; editable
 installations are tested on all three operating systems as well.
 
 For a local development environment, install with

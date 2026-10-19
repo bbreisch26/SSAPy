@@ -38,7 +38,7 @@ These requirements can be installed on Windows, macOS, and Linux.
 
     .. tab:: Windows
 
-       Use 64-bit CPython 3.10--3.14. To build from source, install
+       Use 64-bit Python 3.10--3.14. To build from source, install
        Visual Studio 2022 Build Tools with the **Desktop development with C++**
        workload (including MSVC and a Windows SDK). CMake is installed
        automatically by pip in the isolated build environment.

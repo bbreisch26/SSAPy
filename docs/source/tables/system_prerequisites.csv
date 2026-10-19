@@ -1,5 +1,5 @@
 Name, Supported Versions, Notes, Requirement Reason
-Python, 3.10--3.14, 64-bit CPython, Interpreter
+Python, 3.10--3.14, 64-bit, Interpreter
 C/C++ Compilers, , MSVC on Windows, Building from source only
 CMake, 3.18+, Installed automatically by pip, Building from source only
 make, , Unix Makefiles generator only, Building from source on Unix
